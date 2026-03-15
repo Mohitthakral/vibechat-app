@@ -41,7 +41,7 @@ import { SocketProvider } from './context/SocketContext';
 import Login from "./components/Auth/login"
 import Register from './components/Auth/register';
 import VerifyEmail from './components/Auth/VerifyEmail';
-import ChatPage from './pages/ChatPage';
+import ChatPage from "./Pages/ChatPage"
 import Navbar from './components/Layout/Navbar';
 
 function ProtectedRoute({ children }) {
