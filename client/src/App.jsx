@@ -38,7 +38,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 
-import Login from './components/Auth/Login';
+import Login from "./components/Auth/login"
 import Register from './components/Auth/Register';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import ChatPage from './pages/ChatPage';
