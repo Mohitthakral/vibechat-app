@@ -39,7 +39,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 
 import Login from "./components/Auth/login"
-import Register from './components/Auth/Register';
+import Register from './components/Auth/register';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import ChatPage from './pages/ChatPage';
 import Navbar from './components/Layout/Navbar';
