@@ -17,7 +17,7 @@ export default function ChatPage() {
       </div>
 
       {/* Chat Window - full screen on mobile */}
-      <div className={`${selectedUser ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
+      <div className={`${selectedUser ? 'flex' : 'hidden md:flex'} flex-1 flex-col w-full min-w-0`}>
         {selectedUser && (
           <button 
             className="md:hidden p-2 text-left bg-purple-100 text-purple-700 font-medium"

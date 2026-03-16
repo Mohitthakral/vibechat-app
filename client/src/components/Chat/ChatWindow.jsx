@@ -157,7 +157,7 @@ export default function ChatWindow({ selectedUser }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{minHeight: 0, backgroundColor: '#FAF9FF'}}>
+      <div className="flex-1 overflow-y-auto px-2 py-4 space-y-2 w-full" style={{minHeight: 0, backgroundColor: '#FAF9FF'}}>
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
