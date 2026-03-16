@@ -47,26 +47,27 @@ const register = async (req, res) => {
 
     const verificationLink = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
     
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Verify Your Email - VibeChat',
-        html: verificationEmailTemplate(user.username, verificationLink),
-      });
-      console.log('✅ Verification email sent to:', user.email);
-    } catch (emailError) {
-      console.error('❌ Email sending failed:', emailError.message);
-    }
+   // WITH this:
+sendEmail({
+  email: user.email,
+  subject: 'Verify Your Email - VibeChat',
+  html: verificationEmailTemplate(user.username, verificationLink),
+}).catch(err => console.error('❌ Email sending failed:', err.message));
 
-    res.status(201).json({
-      message: 'Registration successful! Please check your email to verify your account.',
-      userId: user.id,
-    });
-  } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
-  }
-};
+const token = generateToken(user.id);
+
+res.status(201).json({
+  message: 'Registration successful!',
+  token,
+  user: {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    displayName: user.displayName || username,
+    avatar: null,
+    bio: null,
+  },
+});
 
 const verifyEmail = async (req, res) => {
   try {
