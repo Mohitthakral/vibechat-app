@@ -47,27 +47,31 @@ const register = async (req, res) => {
 
     const verificationLink = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
     
-   // WITH this:
-sendEmail({
-  email: user.email,
-  subject: 'Verify Your Email - VibeChat',
-  html: verificationEmailTemplate(user.username, verificationLink),
-}).catch(err => console.error('❌ Email sending failed:', err.message));
+    sendEmail({
+      email: user.email,
+      subject: 'Verify Your Email - VibeChat',
+      html: verificationEmailTemplate(user.username, verificationLink),
+    }).catch(err => console.error('❌ Email sending failed:', err.message));
 
-const token = generateToken(user.id);
+    const token = generateToken(user.id);
 
-res.status(201).json({
-  message: 'Registration successful!',
-  token,
-  user: {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    displayName: user.displayName || username,
-    avatar: null,
-    bio: null,
-  },
-});
+    res.status(201).json({
+      message: 'Registration successful!',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName || username,
+        avatar: null,
+        bio: null,
+      },
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+};
 
 const verifyEmail = async (req, res) => {
   try {
@@ -118,14 +122,6 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Comment this out for testing without email verification
-    // if (!user.isVerified) {
-    //   return res.status(401).json({ 
-    //     message: 'Please verify your email before logging in',
-    //     needsVerification: true 
-    //   });
-    // }
 
     const token = generateToken(user.id);
 
