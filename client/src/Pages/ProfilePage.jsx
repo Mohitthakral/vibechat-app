@@ -40,16 +40,14 @@ export default function ProfilePage() {
       data.append('bio', formData.bio);
       if (selectedFile) data.append('avatar', selectedFile);
 
-      const response = await userAPI.updateProfile(data);
-      
-      // Update user in localStorage
-      const token = localStorage.getItem('token');
-      if (token) {
-        const updatedUser = { ...user, ...response.data };
-        // Refresh auth context
-        window.location.href = '/chat';
-      }
-      toast.success('Profile updated! 🎉');
+      // WITH this:
+const response = await userAPI.updateProfile(data);
+toast.success('Profile updated! 🎉');
+
+// Wait for toast to show then redirect
+setTimeout(() => {
+  window.location.href = '/chat';
+}, 1500);
     } catch (error) {
       toast.error('Failed to update profile');
     } finally {
