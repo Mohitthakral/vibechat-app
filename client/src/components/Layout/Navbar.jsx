@@ -15,21 +15,23 @@ export default function Navbar() {
     <nav className="bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg">
       <div className="px-4">
         <div className="flex items-center justify-between h-16">
-          
-          {/* Logo */}
           <h1 className="text-xl font-bold text-white">VibeChat</h1>
 
           {user && (
             <div className="flex items-center space-x-2">
-              {/* Avatar + name */}
-              <img
-                src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName}`}
-                alt={user.displayName}
-                className="w-8 h-8 rounded-full border-2 border-white shrink-0"
-              />
-              <span className="font-medium text-sm hidden sm:block">{user.displayName}</span>
+              {/* Clickable avatar → goes to profile */}
+              <button
+                onClick={() => navigate('/profile')}
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName}`}
+                  alt={user.displayName}
+                  className="w-8 h-8 rounded-full border-2 border-white shrink-0"
+                />
+                <span className="font-medium text-sm hidden sm:block">{user.displayName}</span>
+              </button>
 
-              {/* Logout - icon only on mobile */}
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-1 px-2 py-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
