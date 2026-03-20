@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 export default function ProfilePage() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -40,14 +40,12 @@ export default function ProfilePage() {
       data.append('bio', formData.bio);
       if (selectedFile) data.append('avatar', selectedFile);
 
-      // WITH this:
-const response = await userAPI.updateProfile(data);
-toast.success('Profile updated! 🎉');
+      await userAPI.updateProfile(data);
+      toast.success('Profile updated! 🎉');
 
-// Wait for toast to show then redirect
-setTimeout(() => {
-  window.location.href = '/chat';
-}, 1500);
+      setTimeout(() => {
+        window.location.href = '/chat';
+      }, 1500);
     } catch (error) {
       toast.error('Failed to update profile');
     } finally {
@@ -71,29 +69,28 @@ setTimeout(() => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg p-6"
         >
-       {/* Avatar */}
-<div className="flex justify-center mb-6">
-  <div className="relative cursor-pointer" onClick={() => fileInputRef.current.click()}>
-    <img
-      src={avatarPreview || `https://ui-avatars.com/api/?name=${user?.displayName}&background=random&size=128`}
-      alt="Profile"
-      className="w-32 h-32 rounded-full object-cover border-4 border-primary-200"
-    />
-    <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-      <CameraIcon className="h-8 w-8 text-white" />
-    </div>
-    <div className="absolute bottom-0 right-0 bg-primary-500 text-white p-2 rounded-full shadow-lg">
-      <CameraIcon className="h-5 w-5" />
-    </div>
-    <input
-      ref={fileInputRef}
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={handleImageSelect}
-    />
-  </div>
-</div>
+          {/* Avatar */}
+          <div className="flex justify-center mb-6">
+            <div className="relative cursor-pointer" onClick={() => fileInputRef.current.click()}>
+              <img
+                src={avatarPreview || `https://ui-avatars.com/api/?name=${user?.displayName}&background=random&size=128`}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary-200"
+              />
+              <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <CameraIcon className="h-8 w-8 text-white" />
+              </div>
+              <div className="absolute bottom-0 right-0 bg-primary-500 text-white p-2 rounded-full shadow-lg">
+                <CameraIcon className="h-5 w-5" />
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+            </div>
           </div>
 
           <p className="text-center text-sm text-gray-500 mb-6">
