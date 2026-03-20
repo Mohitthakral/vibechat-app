@@ -1,21 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { userAPI } from '../../services/api';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 export default function UserSearch({ onSelectUser }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [following, setFollowing] = useState(new Set());
+  const [followLoading, setFollowLoading] = useState({});
+
+  // Load following list on mount
+  useEffect(() => {
+    const loadFollowing = async () => {
+      try {
+        const response = await userAPI.getFollowing();
+        const followingIds = new Set(response.data.map(u => u.id));
+        setFollowing(followingIds);
+      } catch (error) {
+        console.error('Load following error:', error);
+      }
+    };
+    loadFollowing();
+  }, []);
 
   const handleSearch = async (searchQuery) => {
     setQuery(searchQuery);
-    
     if (searchQuery.trim().length < 2) {
       setResults([]);
       return;
     }
-
     setLoading(true);
     try {
       const response = await userAPI.searchUsers(searchQuery);
@@ -24,6 +39,30 @@ export default function UserSearch({ onSelectUser }) {
       console.error('Search error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFollow = async (e, userId) => {
+    e.stopPropagation(); // prevent opening chat
+    setFollowLoading(prev => ({ ...prev, [userId]: true }));
+    try {
+      if (following.has(userId)) {
+        await userAPI.unfollowUser(userId);
+        setFollowing(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(userId);
+          return newSet;
+        });
+        toast.success('Unfollowed!');
+      } else {
+        await userAPI.followUser(userId);
+        setFollowing(prev => new Set([...prev, userId]));
+        toast.success('Following! 🎉');
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+    } finally {
+      setFollowLoading(prev => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -52,23 +91,53 @@ export default function UserSearch({ onSelectUser }) {
             <motion.div
               key={user.id}
               whileHover={{ backgroundColor: '#f3f4f6' }}
-              onClick={() => handleUserClick(user)}
-              className="flex items-center space-x-3 p-3 cursor-pointer"
+              className="flex items-center justify-between p-3 cursor-pointer"
             >
-              <img
-                src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName}`}
-                alt={user.displayName}
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h4 className="font-semibold text-gray-800">{user.displayName}</h4>
-                <p className="text-sm text-gray-600">@{user.username}</p>
+              {/* User info - click to open chat */}
+              <div
+                className="flex items-center space-x-3 flex-1"
+                onClick={() => handleUserClick(user)}
+              >
+                <img
+                  src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName}`}
+                  alt={user.displayName}
+                  className="w-10 h-10 rounded-full"
+                />
+                <div>
+                  <h4 className="font-semibold text-gray-800">{user.displayName}</h4>
+                  <p className="text-sm text-gray-600">@{user.username}</p>
+                </div>
               </div>
+
+              {/* Follow/Unfollow button */}
+              <button
+                onClick={(e) => handleFollow(e, user.id)}
+                disabled={followLoading[user.id]}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  following.has(user.id)
+                    ? 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                    : 'bg-primary-500 text-white hover:bg-primary-600'
+                }`}
+              >
+                {followLoading[user.id] ? (
+                  <span>...</span>
+                ) : following.has(user.id) ? (
+                  <>
+                    <UserMinusIcon className="h-4 w-4" />
+                    <span>Unfollow</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlusIcon className="h-4 w-4" />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
             </motion.div>
           ))}
         </div>
       )}
-      
+
       {loading && (
         <div className="mt-2 text-center text-gray-500">Searching...</div>
       )}
