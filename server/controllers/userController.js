@@ -145,16 +145,24 @@ const updateProfile = async (req, res) => {
     let avatarUrl = req.user.avatar;
 
     // If there's a file upload
-    if (req.file) {
-      // Upload to Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
+if (req.file) {
+  // Upload buffer to Cloudinary instead of file path
+  const result = await new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
         folder: 'vibechat/avatars',
         width: 200,
         height: 200,
         crop: 'fill',
-      });
-      avatarUrl = result.secure_url;
-    }
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    ).end(req.file.buffer);
+  });
+  avatarUrl = result.secure_url;
+}
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
