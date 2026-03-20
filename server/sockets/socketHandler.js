@@ -92,34 +92,36 @@ const setupSocketIO = (io) => {
         updatedAt: new Date()
       }
     });
-        // Create message in database
-        const message = await prisma.message.create({
-          data: {
-            content,
-            mediaUrl,
-            mediaType,
-            senderId: socket.userId,
-            receiverId,
-          },
-          include: {
-            sender: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatar: true,
-              },
-            },
-            receiver: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatar: true,
-              },
-            },
-          },
-        });
+       // Create message in database
+const message = await prisma.message.create({
+  data: {
+    content,
+    mediaUrl,
+    mediaType,
+    senderId: socket.userId,
+    receiverId,
+    // Delete unread messages after 7 days
+    deleteAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
+  include: {
+    sender: {
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatar: true,
+      },
+    },
+    receiver: {
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatar: true,
+      },
+    },
+  },
+});
 
         // Send to sender
         socket.emit('message-sent', message);
