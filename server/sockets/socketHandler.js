@@ -168,13 +168,18 @@ const setupSocketIO = (io) => {
         console.error('Message read error:', error);
       }
     });
+    // Handle get online users request
+socket.on('get-online-users', () => {
+  const onlineUserIds = Array.from(connectedUsers.keys());
+  socket.emit('online-users-list', onlineUserIds);
+});
 
-    // Handle disconnect
-    socket.on('disconnect', () => {
-      console.log(`User disconnected: ${socket.userId}`);
-      connectedUsers.delete(socket.userId);
-      io.emit('user-offline', { userId: socket.userId });
-    });
+   // Handle disconnect
+socket.on('disconnect', () => {
+  console.log(`User disconnected: ${socket.userId}`);
+  connectedUsers.delete(socket.userId);
+  io.emit('user-offline', { userId: socket.userId });
+});
   });
 
   // Clean up expired messages every hour

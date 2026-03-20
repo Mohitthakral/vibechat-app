@@ -19,10 +19,16 @@ export const SocketProvider = ({ children }) => {
     if (!user) return;
 
     const socketInstance = getSocket();
-
     if (!socketInstance) return;
 
     setSocket(socketInstance);
+
+    // Request current online users when connecting
+    socketInstance.emit('get-online-users');
+
+    const handleOnlineUsersList = (userIds) => {
+      setOnlineUsers(new Set(userIds));
+    };
 
     const handleUserOnline = ({ userId }) => {
       setOnlineUsers(prev => new Set([...prev, userId]));
@@ -36,10 +42,12 @@ export const SocketProvider = ({ children }) => {
       });
     };
 
+    socketInstance.on('online-users-list', handleOnlineUsersList);
     socketInstance.on('user-online', handleUserOnline);
     socketInstance.on('user-offline', handleUserOffline);
 
     return () => {
+      socketInstance.off('online-users-list', handleOnlineUsersList);
       socketInstance.off('user-online', handleUserOnline);
       socketInstance.off('user-offline', handleUserOffline);
     };
