@@ -163,12 +163,16 @@ export default function ChatWindow({ selectedUser }) {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            <div className="text-center">
-              <div className="text-5xl mb-3">👋</div>
-              <p>No messages yet. Say hello!</p>
-            </div>
-          </div>
+  <div className="flex items-center justify-center h-full text-gray-400">
+    <div className="text-center px-6">
+      <div className="text-5xl mb-3">👋</div>
+      <p className="font-medium text-gray-600">No messages yet. Say hello!</p>
+      <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-700 flex items-start space-x-2">
+        <span className="text-lg">⏱️</span>
+        <p className="text-left">Messages disappear <strong>12 hours after being read</strong>. Unread messages are deleted after 7 days.</p>
+      </div>
+    </div>
+  </div>
         ) : (
           <>
             {messages.map((message) => (
