@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../../services/api';
-import { MagnifyingGlassIcon, UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, UserPlusIcon, UserMinusIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -11,7 +11,6 @@ export default function UserSearch({ onSelectUser }) {
   const [following, setFollowing] = useState(new Set());
   const [followLoading, setFollowLoading] = useState({});
 
-  // Load following list on mount
   useEffect(() => {
     const loadFollowing = async () => {
       try {
@@ -43,22 +42,30 @@ export default function UserSearch({ onSelectUser }) {
   };
 
   const handleFollow = async (e, userId) => {
-    e.stopPropagation(); // prevent opening chat
+    e.stopPropagation();
     setFollowLoading(prev => ({ ...prev, [userId]: true }));
     try {
-      if (following.has(userId)) {
-        await userAPI.unfollowUser(userId);
-        setFollowing(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(userId);
-          return newSet;
-        });
-        toast.success('Unfollowed!');
-      } else {
-        await userAPI.followUser(userId);
-        setFollowing(prev => new Set([...prev, userId]));
-        toast.success('Following! 🎉');
-      }
+      await userAPI.followUser(userId);
+      setFollowing(prev => new Set([...prev, userId]));
+      toast.success('Follow request sent! 🎉');
+    } catch (error) {
+      toast.error('Something went wrong');
+    } finally {
+      setFollowLoading(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const handleUnfollow = async (e, userId) => {
+    e.stopPropagation();
+    setFollowLoading(prev => ({ ...prev, [userId]: true }));
+    try {
+      await userAPI.unfollowUser(userId);
+      setFollowing(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast.success('Unfollowed!');
     } catch (error) {
       toast.error('Something went wrong');
     } finally {
@@ -91,13 +98,10 @@ export default function UserSearch({ onSelectUser }) {
             <motion.div
               key={user.id}
               whileHover={{ backgroundColor: '#f3f4f6' }}
-              className="flex items-center justify-between p-3 cursor-pointer"
+              className="flex items-center justify-between p-3"
             >
-              {/* User info - click to open chat */}
-              <div
-                className="flex items-center space-x-3 flex-1"
-                onClick={() => handleUserClick(user)}
-              >
+              {/* User info */}
+              <div className="flex items-center space-x-3 flex-1">
                 <img
                   src={user.avatar || `https://ui-avatars.com/api/?name=${user.displayName}`}
                   alt={user.displayName}
@@ -109,30 +113,51 @@ export default function UserSearch({ onSelectUser }) {
                 </div>
               </div>
 
-              {/* Follow/Unfollow button */}
-              <button
-                onClick={(e) => handleFollow(e, user.id)}
-                disabled={followLoading[user.id]}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  following.has(user.id)
-                    ? 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
-                    : 'bg-primary-500 text-white hover:bg-primary-600'
-                }`}
-              >
-                {followLoading[user.id] ? (
-                  <span>...</span>
-                ) : following.has(user.id) ? (
-                  <>
-                    <UserMinusIcon className="h-4 w-4" />
-                    <span>Unfollow</span>
-                  </>
+              {/* Action buttons */}
+              <div className="flex items-center space-x-2">
+                {!following.has(user.id) ? (
+                  // Not following — show Follow button only
+                  <button
+                    onClick={(e) => handleFollow(e, user.id)}
+                    disabled={followLoading[user.id]}
+                    className="flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                  >
+                    {followLoading[user.id] ? (
+                      <span>...</span>
+                    ) : (
+                      <>
+                        <UserPlusIcon className="h-4 w-4" />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
                 ) : (
+                  // Following — show Chat + Unfollow buttons
                   <>
-                    <UserPlusIcon className="h-4 w-4" />
-                    <span>Follow</span>
+                    <button
+                      onClick={() => handleUserClick(user)}
+                      className="flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
+                    >
+                      <ChatBubbleLeftIcon className="h-4 w-4" />
+                      <span>Chat</span>
+                    </button>
+                    <button
+                      onClick={(e) => handleUnfollow(e, user.id)}
+                      disabled={followLoading[user.id]}
+                      className="flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    >
+                      {followLoading[user.id] ? (
+                        <span>...</span>
+                      ) : (
+                        <>
+                          <UserMinusIcon className="h-4 w-4" />
+                          <span>Unfollow</span>
+                        </>
+                      )}
+                    </button>
                   </>
                 )}
-              </button>
+              </div>
             </motion.div>
           ))}
         </div>
