@@ -21,7 +21,7 @@ export default function Register() {
     setLoading(false);
     
    if (result.success) {
-  navigate('/login');
+  navigate('/chat');
 }
   };
 
