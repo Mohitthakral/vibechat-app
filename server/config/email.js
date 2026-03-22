@@ -12,16 +12,17 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
+  await resend.emails.send({
+    from: 'VibeChat <onboarding@resend.dev>',
     to: options.email,
     subject: options.subject,
     html: options.html,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };
 
 module.exports = sendEmail;
