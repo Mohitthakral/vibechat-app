@@ -61,14 +61,7 @@ export const AuthProvider = ({ children }) => {
 const register = async (userData) => {
   try {
     const response = await authAPI.register(userData);
-    const { token, user } = response.data;
-    
-    localStorage.setItem('token', token);
-    setToken(token);
-    setUser(user);
-    initSocket(token);
-    
-    toast.success('Welcome to VibeChat! 🎉');
+    toast.success('Registration successful! Please check your email to verify your account. 📧');
     return { success: true };
   } catch (error) {
     const message = error.response?.data?.message || 'Registration failed';

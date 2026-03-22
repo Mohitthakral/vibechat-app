@@ -53,19 +53,8 @@ const register = async (req, res) => {
       html: verificationEmailTemplate(user.username, verificationLink),
     }).catch(err => console.error('❌ Email sending failed:', err.message));
 
-    const token = generateToken(user.id);
-
     res.status(201).json({
-      message: 'Registration successful!',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        displayName: user.displayName || username,
-        avatar: null,
-        bio: null,
-      },
+      message: 'Registration successful! Please check your email to verify your account.',
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -121,6 +110,14 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check email verification
+    if (!user.isVerified) {
+      return res.status(401).json({ 
+        message: 'Please verify your email before logging in',
+        needsVerification: true 
+      });
     }
 
     const token = generateToken(user.id);

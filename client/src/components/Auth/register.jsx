@@ -20,9 +20,9 @@ export default function Register() {
     const result = await register(formData);
     setLoading(false);
     
-    if (result.success) {
-      navigate('/chat');
-    }
+   if (result.success) {
+  navigate('/login');
+}
   };
 
   return (
