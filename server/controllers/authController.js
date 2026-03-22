@@ -1,9 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const prisma = require('../config/database');
-const sendEmail = require('../config/email');
-const { verificationEmailTemplate } = require('../utils/emailTemplates');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -33,7 +30,6 @@ const register = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     const user = await prisma.user.create({
       data: {
@@ -41,51 +37,27 @@ const register = async (req, res) => {
         email,
         password: hashedPassword,
         displayName: displayName || username,
-        verificationToken,
+        isVerified: true,
       },
     });
 
-    const verificationLink = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
-    
-    sendEmail({
-      email: user.email,
-      subject: 'Verify Your Email - VibeChat',
-      html: verificationEmailTemplate(user.username, verificationLink),
-    }).catch(err => console.error('❌ Email sending failed:', err.message));
+    const token = generateToken(user.id);
 
     res.status(201).json({
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: 'Registration successful!',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        avatar: null,
+        bio: null,
+      },
     });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ message: 'Server error during registration' });
-  }
-};
-
-const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.params;
-
-    const user = await prisma.user.findFirst({
-      where: { verificationToken: token },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired verification token' });
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        isVerified: true,
-        verificationToken: null,
-      },
-    });
-
-    res.json({ message: 'Email verified successfully! You can now log in.' });
-  } catch (error) {
-    console.error('Verify email error:', error);
-    res.status(500).json({ message: 'Server error during email verification' });
   }
 };
 
@@ -110,14 +82,6 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Check email verification
-    if (!user.isVerified) {
-      return res.status(401).json({ 
-        message: 'Please verify your email before logging in',
-        needsVerification: true 
-      });
     }
 
     const token = generateToken(user.id);
@@ -164,7 +128,6 @@ const getMe = async (req, res) => {
 
 module.exports = {
   register,
-  verifyEmail,
   login,
   getMe,
 };
