@@ -3,8 +3,6 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -13,32 +11,43 @@ const setupSocketIO = require('./sockets/socketHandler');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: function(origin, callback) {
-      if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-  },
-});
 
-// Middleware
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
+// ✅ Allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://*.vercel.app',
+  'https://*.onrender.com'
+];
+
+// ✅ CORS config (fixed)
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (
+      origin.includes('localhost') ||
+      origin.includes('vercel.app') ||
+      origin.includes('onrender.com')
+    ) {
       callback(null, true);
     } else {
+      console.log("❌ Blocked by CORS:", origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
-}));
+  credentials: true,
+};
+
+// Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Socket.IO setup (with same CORS)
+const io = new Server(server, {
+  cors: corsOptions,
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -47,21 +56,27 @@ app.use('/api/messages', messageRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
+  console.log("✅ Health check hit");
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Setup Socket.IO
-setupSocketIO(io);
+// Socket setup
+try {
+  setupSocketIO(io);
+  console.log("📡 Socket.IO initialized");
+} catch (err) {
+  console.error("❌ Socket.IO Error:", err);
+}
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("❌ Server Error:", err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
+// Server start
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📡 Socket.IO is ready for connections`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
